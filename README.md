@@ -1,3 +1,5 @@
+This is a fork of winapps that provides support FreeRDP 3
+
 # winapps
 The winapps main project 
 Originally created by fmstrat https://github.com/Fmstrat/winapps/

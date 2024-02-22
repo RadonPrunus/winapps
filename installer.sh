@@ -9,6 +9,13 @@ USEDEMO=0
 
 INSTALLED_EXES=()
 
+FREERDP="xfreerdp"
+
+FREERDP_VERSION="2"
+if [[ `$FREERDP --version` =~ ([0-9]+)\.[0-9]+\.[0-9]+ ]]; then
+	FREERDP_VERSION="${BASH_REMATCH[1]}"
+fi
+
 function waUsage() {
 	echo 'Usage:
   ./installer.sh --user    # Install everything in ${HOME}
@@ -41,7 +48,11 @@ function waFindInstalled() {
 		done;
 		echo "powershell.exe -ExecutionPolicy Bypass -File \\\\tsclient\\home\\.local\\share\\winapps\\ExtractPrograms.ps1 > \\\\tsclient\home\\.local\\share\\winapps\\detected" >> ${HOME}/.local/share/winapps/installed.bat
 		echo "RENAME \\\\tsclient\\home\\.local\\share\\winapps\\installed.tmp installed" >> ${HOME}/.local/share/winapps/installed.bat
-		xfreerdp /d:"${RDP_DOMAIN}" /u:"${RDP_USER}" /p:"${RDP_PASS}" /v:${RDP_IP} +auto-reconnect +home-drive -wallpaper /span /wm-class:"RDPInstaller" /app:"C:\Windows\System32\cmd.exe" /app-icon:"${DIR}/../icons/windows.svg" /app-cmd:"/C \\\\tsclient\\home\\.local\\share\\winapps\\installed.bat" 1> /dev/null 2>&1 &
+		if [[ "${FREERDP_VERSION}" = "3" ]]; then
+			$FREERDP /d:"${RDP_DOMAIN}" /u:"${RDP_USER}" /p:"${RDP_PASS}" /v:${RDP_IP} +auto-reconnect +home-drive -wallpaper /span /wm-class:"RDPInstaller" /app:program:"C:\Windows\System32\cmd.exe",icon:"${DIR}/../icons/windows.svg",cmd:"/C \\\\tsclient\\home\\.local\\share\\winapps\\installed.bat" 1> /dev/null 2>&1 &
+		else
+			$FREERDP /d:"${RDP_DOMAIN}" /u:"${RDP_USER}" /p:"${RDP_PASS}" /v:${RDP_IP} +auto-reconnect +home-drive -wallpaper /span /wm-class:"RDPInstaller" /app:"C:\Windows\System32\cmd.exe" /app-icon:"${DIR}/../icons/windows.svg" /app-cmd:"/C \\\\tsclient\\home\\.local\\share\\winapps\\installed.bat" 1> /dev/null 2>&1 &
+		fi
 		COUNT=0
 		while [ ! -f "${HOME}/.local/share/winapps/installed" ]; do
 			sleep 5
