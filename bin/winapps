@@ -41,10 +41,22 @@ else
 	touch "${HOME}/.local/share/winapps/run"
 fi
 
-if [ -z "$(which xfreerdp)" ]; then
+if [ -n "$(which xfreerdp3)" ]; then
+	FREERDP="xfreerdp3"
+	FREERDP_VERSION="3"
+elif [ -n "$(which xfreerdp)" ]; then
+	FREERDP="xfreerdp"
+	FREERDP_VERSION="2"
+else
 	echo "You need xfreerdp!"
 	echo "  sudo apt-get install -y freerdp2-x11"
 	exit
+fi
+
+# Verify freerdp version, some distros might
+# package it differently.
+if [[ `$FREERDP --version` =~ ([0-9]+)\.[0-9]+\.[0-9]+ ]]; then
+	FREERDP_VERSION="${BASH_REMATCH[1]}"
 fi
 
 if [ -z "${RDP_IP}" ]; then
@@ -72,29 +84,22 @@ if [ "${MULTIMON}" = "true" ]; then
 	MULTI_FLAG="multimon"
 fi
 
-FREERDP="xfreerdp"
-
-FREERDP_VERSION="2"
-if [[ `$FREERDP --version` =~ ([0-9]+)\.[0-9]+\.[0-9]+ ]]; then
-	FREERDP_VERSION="${BASH_REMATCH[1]}"
-fi
-
 if [ "${1}" = "windows" ]; then
-	if [[ "${FREERDP_VERSION}" = "3" ]]; then
+	if [ "${FREERDP_VERSION}" = "3" ]; then
 		$FREERDP ${RDP_FLAGS} /d:"${RDP_DOMAIN}" /u:"${RDP_USER}" /p:"${RDP_PASS}" /v:${RDP_IP} /scale:${RDP_SCALE} +dynamic-resolution +auto-reconnect +home-drive /wm-class:"Microsoft Windows" 1> /dev/null 2>&1 &
 	else
 		$FREERDP ${RDP_FLAGS} /d:"${RDP_DOMAIN}" /u:"${RDP_USER}" /p:"${RDP_PASS}" /v:${RDP_IP} /scale:${RDP_SCALE} /dynamic-resolution +auto-reconnect +home-drive /wm-class:"Microsoft Windows" 1> /dev/null 2>&1 &
 	fi
 elif [ "${1}" = "check" ]; then
 	dprint "CHECK"
-	if [[ "${FREERDP_VERSION}" = "3" ]]; then
+	if [ "${FREERDP_VERSION}" = "3" ]; then
 		$FREERDP ${RDP_FLAGS} /d:"${RDP_DOMAIN}" /u:"${RDP_USER}" /p:"${RDP_PASS}" /v:${RDP_IP} +auto-reconnect +home-drive -wallpaper /scale:${RDP_SCALE} +dynamic-resolution /${MULTI_FLAG} /app:program:"explorer.exe"
 	else
 		$FREERDP ${RDP_FLAGS} /d:"${RDP_DOMAIN}" /u:"${RDP_USER}" /p:"${RDP_PASS}" /v:${RDP_IP} +auto-reconnect +home-drive -wallpaper /scale:${RDP_SCALE} /dynamic-resolution /${MULTI_FLAG} /app:"explorer.exe"
 	fi
 elif [ "${1}" = "manual" ]; then
 	dprint "MANUAL:${2}"
-	if [[ "${FREERDP_VERSION}" = "3" ]]; then
+	if [ "${FREERDP_VERSION}" = "3" ]; then
 		$FREERDP ${RDP_FLAGS} /d:"${RDP_DOMAIN}" /u:"${RDP_USER}" /p:"${RDP_PASS}" /v:${RDP_IP} +auto-reconnect +home-drive -wallpaper /scale:${RDP_SCALE} +dynamic-resolution /${MULTI_FLAG} /app:program:"${2}" 1> /dev/null 2>&1 &
 	else
 		$FREERDP ${RDP_FLAGS} /d:"${RDP_DOMAIN}" /u:"${RDP_USER}" /p:"${RDP_PASS}" /v:${RDP_IP} +auto-reconnect +home-drive -wallpaper /scale:${RDP_SCALE} /dynamic-resolution /${MULTI_FLAG} /app:"${2}" 1> /dev/null 2>&1 &
@@ -118,13 +123,13 @@ elif [ "${1}" != "install" ]; then
 		dprint "HOME:${HOME}"
 		FILE=$(echo "${2}" | sed 's|'"${HOME}"'|\\\\tsclient\\home|;s|/|\\|g;s|\\|\\\\|g')
 		dprint "FILE:${FILE}"
-		if [[ "${FREERDP_VERSION}" = "3" ]]; then
+		if [ "${FREERDP_VERSION}" = "3" ]; then
 			$FREERDP ${RDP_FLAGS} /d:"${RDP_DOMAIN}" /u:"${RDP_USER}" /p:"${RDP_PASS}" /v:${RDP_IP} +auto-reconnect +clipboard +home-drive -wallpaper /scale:${RDP_SCALE} +dynamic-resolution /${MULTI_FLAG} /wm-class:"${FULL_NAME}" /app:program:"${WIN_EXECUTABLE}",icon:"${ICON}",cmd:"\"${FILE}\"" 1> /dev/null 2>&1 &
 		else
 			$FREERDP ${RDP_FLAGS} /d:"${RDP_DOMAIN}" /u:"${RDP_USER}" /p:"${RDP_PASS}" /v:${RDP_IP} +auto-reconnect +clipboard +home-drive -wallpaper /scale:${RDP_SCALE} /dynamic-resolution /${MULTI_FLAG} /wm-class:"${FULL_NAME}" /app:"${WIN_EXECUTABLE}" /app-icon:"${ICON}" /app-cmd:"\"${FILE}\"" 1> /dev/null 2>&1 &
 		fi
 	else
-		if [[ "${FREERDP_VERSION}" = "3" ]]; then
+		if [ "${FREERDP_VERSION}" = "3" ]; then
 			$FREERDP ${RDP_FLAGS} /d:"${RDP_DOMAIN}" /u:"${RDP_USER}" /p:"${RDP_PASS}" /v:${RDP_IP} +auto-reconnect +clipboard +home-drive -wallpaper /scale:${RDP_SCALE} +dynamic-resolution /${MULTI_FLAG} /wm-class:"${FULL_NAME}" /app:program:"${WIN_EXECUTABLE}",icon:"${ICON}" 1> /dev/null 2>&1 &
 		else
 			$FREERDP ${RDP_FLAGS} /d:"${RDP_DOMAIN}" /u:"${RDP_USER}" /p:"${RDP_PASS}" /v:${RDP_IP} +auto-reconnect +clipboard +home-drive -wallpaper /scale:${RDP_SCALE} /dynamic-resolution /${MULTI_FLAG} /wm-class:"${FULL_NAME}" /app:"${WIN_EXECUTABLE}" /app-icon:"${ICON}" 1> /dev/null 2>&1 &

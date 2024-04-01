@@ -9,9 +9,20 @@ USEDEMO=0
 
 INSTALLED_EXES=()
 
-FREERDP="xfreerdp"
+if [ -n "$(which xfreerdp3)" ]; then
+	FREERDP="xfreerdp3"
+	FREERDP_VERSION="3"
+elif [ -n "$(which xfreerdp)" ]; then
+	FREERDP="xfreerdp"
+	FREERDP_VERSION="2"
+else
+	echo "You need xfreerdp!"
+	echo "  sudo apt-get install -y freerdp2-x11"
+	exit
+fi
 
-FREERDP_VERSION="2"
+# Verify freerdp version, some some distros might
+# package it differently.
 if [[ `$FREERDP --version` =~ ([0-9]+)\.[0-9]+\.[0-9]+ ]]; then
 	FREERDP_VERSION="${BASH_REMATCH[1]}"
 fi
@@ -48,7 +59,7 @@ function waFindInstalled() {
 		done;
 		echo "powershell.exe -ExecutionPolicy Bypass -File \\\\tsclient\\home\\.local\\share\\winapps\\ExtractPrograms.ps1 > \\\\tsclient\home\\.local\\share\\winapps\\detected" >> ${HOME}/.local/share/winapps/installed.bat
 		echo "RENAME \\\\tsclient\\home\\.local\\share\\winapps\\installed.tmp installed" >> ${HOME}/.local/share/winapps/installed.bat
-		if [[ "${FREERDP_VERSION}" = "3" ]]; then
+		if [ "${FREERDP_VERSION}" = "3" ]; then
 			$FREERDP /d:"${RDP_DOMAIN}" /u:"${RDP_USER}" /p:"${RDP_PASS}" /v:${RDP_IP} +auto-reconnect +home-drive -wallpaper /span /wm-class:"RDPInstaller" /app:program:"C:\Windows\System32\cmd.exe",icon:"${DIR}/../icons/windows.svg",cmd:"/C \\\\tsclient\\home\\.local\\share\\winapps\\installed.bat" 1> /dev/null 2>&1 &
 		else
 			$FREERDP /d:"${RDP_DOMAIN}" /u:"${RDP_USER}" /p:"${RDP_PASS}" /v:${RDP_IP} +auto-reconnect +home-drive -wallpaper /span /wm-class:"RDPInstaller" /app:"C:\Windows\System32\cmd.exe" /app-icon:"${DIR}/../icons/windows.svg" /app-cmd:"/C \\\\tsclient\\home\\.local\\share\\winapps\\installed.bat" 1> /dev/null 2>&1 &
