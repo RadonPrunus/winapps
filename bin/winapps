@@ -49,7 +49,9 @@ elif [ -n "$(which xfreerdp)" ]; then
 	FREERDP_VERSION="2"
 else
 	echo "You need xfreerdp!"
-	echo "  sudo apt-get install -y freerdp2-x11"
+	echo
+	echo "    Debian:  sudo apt-get install -y freerdp2-x11"
+	echo "Arch Linux:  sudo pacman -S freerdp"
 	exit
 fi
 
